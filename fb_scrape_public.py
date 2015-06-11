@@ -11,7 +11,7 @@ INSTRUCTIONS
 6.    Change the name of your output file at line 29 if you like.
 7.    Now you should be able to run the script from the Python command line. You can use the following command: exec(open('fb_scrape_public.py').read())
 8.    If you did everything correctly, the command line should show you some informative status messages. Eventually it will save a CSV full of data to the same folder where this script was run. If something went wrong, you'll see an error.
-9.    You can download Facebook page comments by loading a plain text list of post IDs instead of Facebook page names. The IDs can be from different pages.
+9.    You can download public Facebook page comments by loading a plain text list of post IDs instead of Facebook page names. The IDs can be from different pages.
 
 '''
 
