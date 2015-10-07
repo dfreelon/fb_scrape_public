@@ -9,6 +9,7 @@ INSTRUCTIONS
 4.    Create a plain text file in the same folder as the script containing one or more names of Facebook pages you want to scrape, one per line. This will only work for public pages. For example, if you wanted to scrape Barack Obama's official FB page (http://facebook.com/barackobama/), your first line would simply be 'barackobama' without quotes. I suggest starting with only one page to make sure it works.
 5.    Enter the filename of the text file containing your FB page names into the quoted field at line 26 below. (It doesn't have to be a csv but it does need to be plain text.)
 6.    Change the name of your output file at line 29 if you like.
+7.    If and only if you know exactly what you're doing, you can modify the field list at line 121 and/or line 126, which will allow you to access other metadata for posts and comments. If you do, please note that the headers in your CSV file will be wrong unless you also modify those accordingly at line 149 and/or 151.
 7.    Now you should be able to run the script from the Python command line. You can use the following command: exec(open('fb_scrape_public.py').read())
 8.    If you did everything correctly, the command line should show you some informative status messages. Eventually it will save a CSV full of data to the same folder where this script was run. If something went wrong, you'll see an error.
 9.    You can download Facebook page comments by loading a plain text list of post IDs instead of Facebook page names. The IDs can be from different pages.
@@ -40,10 +41,10 @@ def load_data(data,enc='utf-8'):
     else:
         return copy.deepcopy(data)
 
-def save_csv(filename,data,quotes_flag='',file_mode='w',enc='utf-8'): #this assumes a list of lists wherein the second-level list items contain no commas
+def save_csv(filename,data,use_quotes=True,file_mode='w',enc='utf-8'): #this assumes a list of lists wherein the second-level list items contain no commas
     with open(filename,file_mode,encoding = enc) as out:
         for line in data:
-            if quotes_flag.upper() == "USE_QUOTES":
+            if use_quotes == True:
                 row = '"' + '","'.join([str(i).replace('"',"'") for i in line]) + '"' + "\n"
             else:
                 row = ','.join([str(i) for i in line]) + "\n"
@@ -71,7 +72,7 @@ def optional_field(dict_item,dict_key):
     except KeyError:
         out = ''
     return out
-
+    
 def make_csv_chunk(fb_json_page,scrape_mode,thread_starter='',msg=''):
     csv_chunk = []
     if scrape_mode == 'posts':
@@ -101,7 +102,7 @@ def make_csv_chunk(fb_json_page,scrape_mode,thread_starter='',msg=''):
             csv_chunk.append(csv_line)
             
     return csv_chunk
-
+    
 time1 = time.time()
 fb_urlobj = urllib.request.urlopen('https://graph.facebook.com/oauth/access_token?grant_type=client_credentials&client_id=' + clientid + '&client_secret=' + clientsecret)
 fb_token = fb_urlobj.read().decode(encoding="latin1")
@@ -111,16 +112,18 @@ csv_data = []
 for x,fid in enumerate(fb_ids):
     if '_' in fid:
         scrape_mode = 'comments'
-        msg_url = 'https://graph.facebook.com/v2.3/' + fid + '?' + fb_token
+        msg_url = 'https://graph.facebook.com/v2.4/' + fid + '?fields=from,message&' + fb_token
         msg_json = url_retry(msg_url)
         msg_user = msg_json['from']['name']
         msg_content = optional_field(msg_json,'message')
+        field_list = 'from,message,created_time,like_count'
     else:
         scrape_mode = 'posts'
         msg_user = ''
         msg_content = ''
+        field_list = 'from,message,picture,link,name,description,type,created_time,shares'
         
-    data_url = 'https://graph.facebook.com/v2.3/' + fid + '/' + scrape_mode + '?limit=100&' + fb_token
+    data_url = 'https://graph.facebook.com/v2.4/' + fid + '/' + scrape_mode + '?fields=' + field_list + '&limit=100&' + fb_token
     next_item = url_retry(data_url)
     if next_item != False:
         csv_data = csv_data + make_csv_chunk(next_item,scrape_mode,msg_user,msg_content)
@@ -141,5 +144,11 @@ for x,fid in enumerate(fb_ids):
     if x % 100 == 0:
         print(x+1,'Facebook IDs archived.')
 
-save_csv(outfile,csv_data,'USE_QUOTES')
+if scrape_mode == 'posts':
+    header = ['from','from_id','message','picture','link','name','description','type','created_time','shares','post_id']
+else:
+    header = ['from','from_id','comment','created_time','like_count','post_id','original_poster','original_message']
+    
+csv_data.insert(0,header)
+save_csv(outfile,csv_data,True)
 print('Script completed in',time.time()-time1,'seconds.')
