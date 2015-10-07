@@ -11,7 +11,7 @@ INSTRUCTIONS
 6.    Change the name of your output file at line 29 if you like.
 7.    Now you should be able to run the script from the Python command line. You can use the following command: exec(open('fb_scrape_public.py').read())
 8.    If you did everything correctly, the command line should show you some informative status messages. Eventually it will save a CSV full of data to the same folder where this script was run. If something went wrong, you'll see an error.
-9.    You can download public Facebook page comments by loading a plain text list of post IDs instead of Facebook page names. The IDs can be from different pages.
+9.    You can download Facebook page comments by loading a plain text list of post IDs instead of Facebook page names. The IDs can be from different pages.
 
 '''
 
@@ -24,9 +24,9 @@ import urllib.request
 
 socket.setdefaulttimeout(30)
 id_file = 'filename.csv' #change to your input filename
-clientid = 'client_id_here' #replace with actual client id
-clientsecret = 'client_secret_here' #replace with actual client secret
-outfile = 'fb_page_posts.csv' #change the output filename if you like
+clientid = '463246617043624' #replace with actual client id
+clientsecret = '96edea7a2df44fd34e8e49f84b424742' #replace with actual client secret
+outfile = 'outfile.csv' #change the output filename if you like
 
 def load_data(data,enc='utf-8'):
     if type(data) is str:
@@ -55,9 +55,12 @@ def url_retry(url):
         try:
             json_out = json.loads(urllib.request.urlopen(url).read().decode(encoding="utf-8"))
             succ = 1
-        except(urllib.error.HTTPError, socket.timeout) as e:
+        except Exception as e:
             print(str(e))
-            time.sleep(1)
+            if 'HTTP Error 4' in str(e):
+                return False
+            else:
+                time.sleep(1)
     return json_out
 
 def optional_field(dict_item,dict_key):
@@ -80,7 +83,7 @@ def make_csv_chunk(fb_json_page,scrape_mode,thread_starter='',msg=''):
             optional_field(line,'link'), \
             optional_field(line,'name'), \
             optional_field(line,'description'), \
-            line['type'], \
+            optional_field('type'), \
             line['created_time'], \
             optional_field(line,'shares'), \
             line['id']]
@@ -119,7 +122,10 @@ for x,fid in enumerate(fb_ids):
         
     data_url = 'https://graph.facebook.com/v2.3/' + fid + '/' + scrape_mode + '?limit=100&' + fb_token
     next_item = url_retry(data_url)
-    csv_data = csv_data + make_csv_chunk(next_item,scrape_mode,msg_user,msg_content)
+    if next_item != False:
+        csv_data = csv_data + make_csv_chunk(next_item,scrape_mode,msg_user,msg_content)
+    else:
+        continue
     n = 0
     
     while 'paging' in next_item and 'next' in next_item['paging']:
@@ -131,6 +137,7 @@ for x,fid in enumerate(fb_ids):
             break
         n += 1
         time.sleep(1)
+
     if x % 100 == 0:
         print(x+1,'Facebook IDs archived.')
 
