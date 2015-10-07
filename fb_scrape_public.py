@@ -83,7 +83,7 @@ def make_csv_chunk(fb_json_page,scrape_mode,thread_starter='',msg=''):
             optional_field(line,'link'), \
             optional_field(line,'name'), \
             optional_field(line,'description'), \
-            optional_field('type'), \
+            optional_field(line,'type'), \
             line['created_time'], \
             optional_field(line,'shares'), \
             line['id']]
