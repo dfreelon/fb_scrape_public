@@ -23,9 +23,9 @@ import time
 import urllib.request
 
 socket.setdefaulttimeout(30)
-id_file = 'filename.csv' #change to your input filename
-clientid = '463246617043624' #replace with actual client id
-clientsecret = '96edea7a2df44fd34e8e49f84b424742' #replace with actual client secret
+id_file = '' #change to your input filename
+clientid = '' #replace with actual client id
+clientsecret = '' #replace with actual client secret
 outfile = 'outfile.csv' #change the output filename if you like
 
 def load_data(data,enc='utf-8'):
