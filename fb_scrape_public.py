@@ -5,10 +5,10 @@ INSTRUCTIONS
 
 1.    This script is written for Python 3 and won't work with previous Python versions.
 2.    You need to create your own Facebook app, which you can do here: https://developers.facebook.com/apps Doesn't matter what you call it, you just need to pull the unique client ID (app ID) and app secret for your new app.
-3.    Once you create your app, paste in the client ID and app secret into the quoted fields at lines 27 and 28 below.
+3.    Once you create your app, paste in the client ID and app secret into the quoted fields at lines 28 and 29 below.
 4.    Create a plain text file in the same folder as the script containing one or more names of Facebook pages you want to scrape, one per line. This will only work for public pages. For example, if you wanted to scrape Barack Obama's official FB page (http://facebook.com/barackobama/), your first line would simply be 'barackobama' without quotes. I suggest starting with only one page to make sure it works.
-5.    Enter the filename of the text file containing your FB page names into the quoted field at line 26 below. (It doesn't have to be a csv but it does need to be plain text.)
-6.    Change the name of your output file at line 29 if you like.
+5.    Enter the filename of the text file containing your FB page names into the quoted field at line 27 below. (It doesn't have to be a csv but it does need to be plain text.)
+6.    Change the name of your output file at line 30 if you like.
 7.    If and only if you know exactly what you're doing, you can modify the field list at line 121 and/or line 126, which will allow you to access other metadata for posts and comments. If you do, please note that the headers in your CSV file will be wrong unless you also modify those accordingly at line 149 and/or 151.
 7.    Now you should be able to run the script from the Python command line. You can use the following command: exec(open('fb_scrape_public.py').read())
 8.    If you did everything correctly, the command line should show you some informative status messages. Eventually it will save a CSV full of data to the same folder where this script was run. If something went wrong, you'll see an error.
@@ -24,9 +24,9 @@ import time
 import urllib.request
 
 socket.setdefaulttimeout(30)
-id_file = '' #change to your input filename
-clientid = '' #replace with actual client id
-clientsecret = '' #replace with actual client secret
+id_file = '' #insert your input filename
+clientid = '' #insert your actual Facebook app client id
+clientsecret = '' #insert your actual Facebook app client secret
 outfile = 'outfile.csv' #change the output filename if you like
 
 def load_data(data,enc='utf-8'):
@@ -75,7 +75,7 @@ def optional_field(dict_item,dict_key):
     
 def make_csv_chunk(fb_json_page,scrape_mode,thread_starter='',msg=''):
     csv_chunk = []
-    if scrape_mode == 'posts':
+    if scrape_mode == 'feed':
         for line in fb_json_page['data']:
             csv_line = [line['from']['name'], \
             '_' + line['from']['id'], \
@@ -118,7 +118,7 @@ for x,fid in enumerate(fb_ids):
         msg_content = optional_field(msg_json,'message')
         field_list = 'from,message,created_time,like_count'
     else:
-        scrape_mode = 'posts'
+        scrape_mode = 'feed'
         msg_user = ''
         msg_content = ''
         field_list = 'from,message,picture,link,name,description,type,created_time,shares'
@@ -128,6 +128,7 @@ for x,fid in enumerate(fb_ids):
     if next_item != False:
         csv_data = csv_data + make_csv_chunk(next_item,scrape_mode,msg_user,msg_content)
     else:
+        print("Skipping ID " + fid + " ...")
         continue
     n = 0
     
@@ -144,11 +145,11 @@ for x,fid in enumerate(fb_ids):
     if x % 100 == 0:
         print(x+1,'Facebook IDs archived.')
 
-if scrape_mode == 'posts':
+if scrape_mode == 'feed':
     header = ['from','from_id','message','picture','link','name','description','type','created_time','shares','post_id']
 else:
     header = ['from','from_id','comment','created_time','like_count','post_id','original_poster','original_message']
     
 csv_data.insert(0,header)
-save_csv(outfile,csv_data,True)
+save_csv(outfile,csv_data)
 print('Script completed in',time.time()-time1,'seconds.')
