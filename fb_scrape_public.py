@@ -4,30 +4,22 @@ This script can download posts and comments from public Facebook pages. It requi
 INSTRUCTIONS
 
 1.    This script is written for Python 3 and won't work with previous Python versions.
-2.    You need to create your own Facebook app, which you can do here: https://developers.facebook.com/apps Doesn't matter what you call it, you just need to pull the unique client ID (app ID) and app secret for your new app.
-3.    Once you create your app, paste in the client ID and app secret into the quoted fields at lines 28 and 29 below.
-4.    Create a plain text file in the same folder as the script containing one or more names of Facebook pages you want to scrape, one per line. This will only work for public pages. For example, if you wanted to scrape Barack Obama's official FB page (http://facebook.com/barackobama/), your first line would simply be 'barackobama' without quotes. I suggest starting with only one page to make sure it works.
-5.    Enter the filename of the text file containing your FB page names into the quoted field at line 27 below. (It doesn't have to be a csv but it does need to be plain text.)
-6.    Change the name of your output file at line 30 if you like.
-7.    If and only if you know exactly what you're doing, you can modify the field list at line 121 and/or line 126, which will allow you to access other metadata for posts and comments. If you do, please note that the headers in your CSV file will be wrong unless you also modify those accordingly at line 149 and/or 151.
-7.    Now you should be able to run the script from the Python command line. You can use the following command: exec(open('fb_scrape_public.py').read())
-8.    If you did everything correctly, the command line should show you some informative status messages. Eventually it will save a CSV full of data to the same folder where this script was run. If something went wrong, you'll see an error.
-9.    You can download Facebook page comments by loading a plain text list of post IDs instead of Facebook page names. The IDs can be from different pages.
-
+2.    The main function in this module is scrape_fb. It is the only function most users will need to run directly.
+3.    You need to create your own Facebook app, which you can do here: https://developers.facebook.com/apps . Doesn't matter what you call it, you just need to pull the unique client ID (app ID) and app secret for your new app.
+4.    Once you create your app, you can insert the client ID and secret AS STRINGS into the appropriate scrape_fb fields. 
+5.    This function accepts text FB user IDs ('barackobama'), numerical user IDs, and post IDs. You can load them into the ids field using a comma-delimited string or by creating a plain text file in the same folder as the script containing one or more names of the Facebook pages you want to scrape, one ID per line. For example, if you wanted to scrape Barack Obama's official FB page (http://facebook.com/barackobama/), your first line would simply be 'barackobama' without quotes. I suggest starting with only one ID to make sure it works. You'll only be able to collect data from public pages.
+6.    The only required fields for the main function are client_id, client_secret, and ids. I recommend not changing the other defaults (except for maybe outfile) unless you know what you're doing.
+7.    If you did everything correctly, the command line should show you some informative status messages. Eventually it will save a CSV full of data to the same folder where this script was run. If something went wrong, you'll see an error.
 '''
 
 import copy
 import csv
+import datetime
 import json
 import socket
 import time
 import urllib.request
-
 socket.setdefaulttimeout(30)
-id_file = '' #insert your input filename
-clientid = '' #insert your actual Facebook app client id
-clientsecret = '' #insert your actual Facebook app client secret
-outfile = 'outfile.csv' #change the output filename if you like
 
 def load_data(data,enc='utf-8'):
     if type(data) is str:
@@ -69,13 +61,15 @@ def optional_field(dict_item,dict_key):
         out = dict_item[dict_key]
         if dict_key == 'shares':
             out = dict_item[dict_key]['count']
+        if dict_key == 'likes':
+            out = dict_item[dict_key]['summary']['total_count']
     except KeyError:
         out = ''
     return out
     
 def make_csv_chunk(fb_json_page,scrape_mode,thread_starter='',msg=''):
     csv_chunk = []
-    if scrape_mode == 'feed':
+    if scrape_mode == 'feed' or scrape_mode == 'posts':
         for line in fb_json_page['data']:
             csv_line = [line['from']['name'], \
             '_' + line['from']['id'], \
@@ -87,6 +81,12 @@ def make_csv_chunk(fb_json_page,scrape_mode,thread_starter='',msg=''):
             optional_field(line,'type'), \
             line['created_time'], \
             optional_field(line,'shares'), \
+            optional_field(line,'likes'), \
+            optional_field(line,'LOVE'), \
+            optional_field(line,'WOW'), \
+            optional_field(line,'HAHA'), \
+            optional_field(line,'SAD'), \
+            optional_field(line,'ANGRY'), \
             line['id']]
             csv_chunk.append(csv_line)
     if scrape_mode == 'comments':
@@ -102,54 +102,103 @@ def make_csv_chunk(fb_json_page,scrape_mode,thread_starter='',msg=''):
             csv_chunk.append(csv_line)
             
     return csv_chunk
-    
-time1 = time.time()
-fb_urlobj = urllib.request.urlopen('https://graph.facebook.com/oauth/access_token?grant_type=client_credentials&client_id=' + clientid + '&client_secret=' + clientsecret)
-fb_token = fb_urlobj.read().decode(encoding="latin1")
-fb_ids = [i[0].strip() for i in load_data(id_file)]
-csv_data = []
 
-for x,fid in enumerate(fb_ids):
-    if '_' in fid:
-        scrape_mode = 'comments'
-        msg_url = 'https://graph.facebook.com/v2.4/' + fid + '?fields=from,message&' + fb_token
-        msg_json = url_retry(msg_url)
-        msg_user = msg_json['from']['name']
-        msg_content = optional_field(msg_json,'message')
-        field_list = 'from,message,created_time,like_count'
+'''
+# The first five fields of scrape_fb are fairly self-explanatory or are explained above. 
+# scrape_mode can take three values: "feed," "posts," or "comments." The first two are identical in most cases and pull the main posts from a public wall. "comments" pulls the comments from a given permalink for a post. Only use "comments" if your IDs are post permalinks.
+# You can use end_date to specify a date around which you'd like the program to stop. It won't stop exactly on that date, but rather a little after it. If present, it needs to be a string in yyyy-mm-dd format. If you leave the field blank, it will extract all available data. 
+'''
+
+def scrape_fb(client_id,client_secret,ids,outfile="fb_data.csv",version="2.7",scrape_mode="feed",end_date=""):
+    time1 = time.time()
+    fb_urlobj = urllib.request.urlopen('https://graph.facebook.com/oauth/access_token?grant_type=client_credentials&client_id=' + client_id + '&client_secret=' + client_secret)
+    fb_token = fb_urlobj.read().decode(encoding="latin1")
+    if type(ids) == 'str':
+        fb_ids = [i[0].strip() for i in load_data(ids)]
     else:
-        scrape_mode = 'feed'
-        msg_user = ''
-        msg_content = ''
-        field_list = 'from,message,picture,link,name,description,type,created_time,shares'
+        fb_ids = [i.strip() for i in ids.split(",")]
+
+    try:
+        end_dateobj = datetime.datetime.strptime(end_date, "%Y-%m-%d").date()
+    except ValueError:
+        end_dateobj = ''
+
+    if scrape_mode == 'feed' or scrape_mode == 'posts':
+        header = ['from','from_id','message','picture','link','name','description','type','created_time','shares','likes','loves','wows','hahas','sads','angrys','post_id']
+    else:
+        header = ['from','from_id','comment','created_time','likes','post_id','original_poster','original_message']
+
+    csv_data = []
+    csv_data.insert(0,header)
+    save_csv(outfile,csv_data,file_mode="a")
+
+    for x,fid in enumerate(fb_ids):
+        if scrape_mode == 'comments':
+            msg_url = 'https://graph.facebook.com/v' + version + '/' + fid + '?fields=from,message&' + fb_token
+            msg_json = url_retry(msg_url)
+            if msg_json == False:
+                print("URL not available. Continuing...", fid)
+                continue
+            msg_user = msg_json['from']['name']
+            msg_content = optional_field(msg_json,'message')
+            field_list = 'from,message,created_time,like_count'
+        else:
+            msg_user = ''
+            msg_content = ''
+            field_list = 'from,message,picture,link,name,description,type,created_time,shares,likes.summary(total_count).limit(0)'
+            
+        data_url = 'https://graph.facebook.com/v' + version + '/' + fid.strip() + '/' + scrape_mode + '?fields=' + field_list + '&limit=100&' + fb_token
+        data_rxns = []
+        new_rxns = ['LOVE','WOW','HAHA','SAD','ANGRY']
+        for i in new_rxns:
+            data_rxns.append('https://graph.facebook.com/v' + version + '/' + fid.strip() + '/' + scrape_mode + '?fields=reactions.type(' + i + ').summary(total_count).limit(0)&limit=100&' + fb_token)
         
-    data_url = 'https://graph.facebook.com/v2.4/' + fid + '/' + scrape_mode + '?fields=' + field_list + '&limit=100&' + fb_token
-    next_item = url_retry(data_url)
-    if next_item != False:
-        csv_data = csv_data + make_csv_chunk(next_item,scrape_mode,msg_user,msg_content)
-    else:
-        print("Skipping ID " + fid + " ...")
-        continue
-    n = 0
-    
-    while 'paging' in next_item and 'next' in next_item['paging']:
-        next_item = url_retry(next_item['paging']['next'])
-        csv_data = csv_data + make_csv_chunk(next_item,scrape_mode,msg_user,msg_content)
-        try:
-            print(n,next_item['data'][len(next_item['data'])-1]['created_time'],time.time()-time1,'seconds elapsed')
-        except IndexError:
-            break
-        n += 1
-        time.sleep(1)
+        next_item = url_retry(data_url)
+        
+        if next_item != False:
+            for n,i in enumerate(data_rxns):
+                tmp_data = url_retry(i)
+                for z,j in enumerate(next_item['data']):
+                    try:
+                        j[new_rxns[n]] = tmp_data['data'][z]['reactions']['summary']['total_count']
+                    except (KeyError,IndexError):
+                        j[new_rxns[n]] = 0
+                
+            csv_data = make_csv_chunk(next_item,scrape_mode,msg_user,msg_content)
+            save_csv(outfile,csv_data,file_mode="a")
+        else:
+            print("Skipping ID " + fid + " ...")
+            continue
+        n = 0
+        
+        while 'paging' in next_item and 'next' in next_item['paging']:
+            next_item = url_retry(next_item['paging']['next'])
+            try:
+                for i in new_rxns:
+                    start = next_item['paging']['next'].find("from")
+                    end = next_item['paging']['next'].find("&",start)
+                    next_rxn_url = next_item['paging']['next'][:start] + 'reactions.type(' + i + ').summary(total_count).limit(0)' + next_item['paging']['next'][end:]
+                    tmp_data = url_retry(next_rxn_url)
+                    for z,j in enumerate(next_item['data']):
+                        try:
+                            j[i] = tmp_data['data'][z]['reactions']['summary']['total_count']
+                        except (KeyError,IndexError):
+                            j[i] = 0
+            except KeyError:
+                continue
+            
+            csv_data = make_csv_chunk(next_item,scrape_mode,msg_user,msg_content)
+            save_csv(outfile,csv_data,file_mode="a")
+            try:
+                print(n+1,"page(s) of data archived for ID",fid,"at",next_item['data'][-1]['created_time'],".",round(time.time()-time1,2),'seconds elapsed.')
+            except IndexError:
+                break
+            n += 1
+            time.sleep(1)
+            if end_dateobj != '' and end_dateobj > datetime.datetime.strptime(next_item['data'][-1]['created_time'][:10],"%Y-%m-%d").date():
+                break
+            
+        print(x+1,'Facebook ID(s) archived.')
 
-    if x % 100 == 0:
-        print(x+1,'Facebook IDs archived.')
-
-if scrape_mode == 'feed':
-    header = ['from','from_id','message','picture','link','name','description','type','created_time','shares','post_id']
-else:
-    header = ['from','from_id','comment','created_time','like_count','post_id','original_poster','original_message']
-    
-csv_data.insert(0,header)
-save_csv(outfile,csv_data)
-print('Script completed in',time.time()-time1,'seconds.')
+    print('Script completed in',time.time()-time1,'seconds.')
+    return csv_data
