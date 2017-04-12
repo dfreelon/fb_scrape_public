@@ -114,7 +114,7 @@ def scrape_fb(client_id,client_secret,ids,outfile="fb_data.csv",version="2.7",sc
     if type(client_id) is int:
         client_id = str(client_id)
     fb_urlobj = urllib.request.urlopen('https://graph.facebook.com/oauth/access_token?grant_type=client_credentials&client_id=' + client_id + '&client_secret=' + client_secret)
-    fb_token = fb_urlobj.read().decode(encoding="latin1")
+    fb_token = 'access_token=' + json.loads(fb_urlobj.read().decode(encoding="latin1"))['access_token']
     if "," in ids:
         fb_ids = [i.strip() for i in ids.split(",")]
     elif '.csv' in ids or '.txt' in ids:
@@ -202,7 +202,7 @@ def scrape_fb(client_id,client_secret,ids,outfile="fb_data.csv",version="2.7",sc
             if end_dateobj != '' and end_dateobj > datetime.datetime.strptime(next_item['data'][-1]['created_time'][:10],"%Y-%m-%d").date():
                 break
             
-        print(x+1,'Facebook ID(s) archived.')
+        print(x+1,'Facebook ID(s) archived.',round(time.time()-time1,2),'seconds elapsed.')
 
     print('Script completed in',time.time()-time1,'seconds.')
     return csv_data
