@@ -1,6 +1,6 @@
 # fb_scrape_public
 
-This script can download posts and comments from public Facebook pages. It requires Python 3.
+This script can download posts and comments from public Facebook pages and groups (__but not users__). It requires Python 3.
 
 INSTRUCTIONS
 
