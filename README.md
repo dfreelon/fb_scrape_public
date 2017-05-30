@@ -16,6 +16,7 @@ Sample code:
 
 ```python
 from fb_scrape_public import scrape_fb
-obama_posts = scrape_fb("client_id","client_secret","barackobama") 
-#where client_id and client_secret are your actual client ID and secret
+#below, client_id and client_secret should be your actual client ID and secret
+obama_posts = scrape_fb("client_id","client_secret","barackobama") #to get page posts
+comments = scrape_fb("client_id","client_secret","6815841748_10154508876046749",scrape_mode="comments") #to get comments on a single post
 ```
