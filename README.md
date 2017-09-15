@@ -2,7 +2,15 @@
 
 This script can download posts and comments from public Facebook pages and groups (__but not users__). It requires Python 3.
 
-INSTRUCTIONS
+------------
+Installation
+------------
+
+``pip3 install fb_scrape_public`` will work, but you can also simply download the script and place it in your PYTHONPATH directory. If you attempt the former, you'll need to use ``from fb_scrape_public import fb_scrape_public`` to enable its functionality. If the latter, ``import fb_scrape_public`` will work.
+
+------------
+Instructions
+------------
 
 1.    This script is written for Python 3 and won't work with previous Python versions.
 2.    The main function in this module is scrape_fb (see lines 107-109). It is the only function most users will need to run directly.
@@ -12,14 +20,18 @@ INSTRUCTIONS
 6.    The only required fields for the scrape_fb function are client_id, client_secret, and ids. I recommend not changing the other defaults unless you know what you're doing (except for ```outfile``` if you want to change the name of the output file and ```scrape_mode``` if you want to pull post comments).
 7.    If you did everything correctly, the command line should show you some informative status messages. Eventually it will save a CSV full of data to the same folder where this script was run. If something went wrong, you'll see an error.
 
-Sample code:
+-----------
+Sample code
+-----------
 
 ```python
-from fb_scrape_public import scrape_fb
+import fb_scrape_public as fsp #if installed manually,
+#OR
+from fb_scrape_public import fb_scrape_public as fsp #if installed via pip
 #below, client_id and client_secret should be your actual client ID and secret
 
 #to get page posts
-obama_posts = scrape_fb("client_id","client_secret","barackobama") 
+obama_posts = fsp.scrape_fb("client_id","client_secret","barackobama") 
 #to get comments on a single post
-comments = scrape_fb("client_id","client_secret","6815841748_10154508876046749",scrape_mode="comments") 
+comments = fsp.scrape_fb("client_id","client_secret","6815841748_10154508876046749",scrape_mode="comments") 
 ```
