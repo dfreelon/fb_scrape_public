@@ -2,13 +2,11 @@
 
 This script can download posts and comments from public Facebook pages and groups (__but not users__). It requires Python 3.
 
-------------
 Installation
 ------------
 
 ``pip3 install fb_scrape_public`` will work, but you can also simply download the script and place it in your PYTHONPATH directory. If you attempt the former, you'll need to use ``from fb_scrape_public import fb_scrape_public`` to enable its functionality. If the latter, ``import fb_scrape_public`` will work.
 
-------------
 Instructions
 ------------
 
@@ -20,7 +18,6 @@ Instructions
 6.    The only required fields for the scrape_fb function are client_id, client_secret, and ids. I recommend not changing the other defaults unless you know what you're doing (except for ```outfile``` if you want to change the name of the output file and ```scrape_mode``` if you want to pull post comments).
 7.    If you did everything correctly, the command line should show you some informative status messages. Eventually it will save a CSV full of data to the same folder where this script was run. If something went wrong, you'll see an error.
 
------------
 Sample code
 -----------
 
