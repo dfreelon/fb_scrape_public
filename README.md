@@ -5,7 +5,7 @@ This script can download posts and comments from public Facebook pages and group
 Installation
 ------------
 
-``pip3 install fb_scrape_public`` will work, but you can also simply download the script and place it in your PYTHONPATH directory. If you attempt the former, you'll need to use ``from fb_scrape_public import fb_scrape_public`` to enable its functionality. If the latter, ``import fb_scrape_public`` will work.
+``pip3 install fb_scrape_public`` will work, but you can also simply download the script and place it in your PYTHONPATH directory.
 
 Instructions
 ------------
@@ -22,9 +22,8 @@ Sample code
 -----------
 
 ```python
-import fb_scrape_public as fsp #if installed manually,
-#OR
-from fb_scrape_public import fb_scrape_public as fsp #if installed via pip
+import fb_scrape_public as fsp
+
 #below, client_id and client_secret should be your actual client ID and secret
 
 #to get page posts
