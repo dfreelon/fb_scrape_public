@@ -117,7 +117,7 @@ def make_csv_chunk(fb_json_page,scrape_mode,thread_starter='',msg=''):
 # You can use end_date to specify a date around which you'd like the program to stop. It won't stop exactly on that date, but rather a little after it. If present, it needs to be a string in yyyy-mm-dd format. If you leave the field blank, it will extract all available data. 
 '''
 
-def scrape_fb(token="",client_id="",client_secret="",ids="",outfile="fb_data.csv",version="2.7",scrape_mode="feed",end_date=""):
+def scrape_fb(client_id="",client_secret="",token="",ids="",outfile="fb_data.csv",version="2.7",scrape_mode="feed",end_date=""):
     time1 = time.time()
     if type(client_id) is int:
         client_id = str(client_id)
