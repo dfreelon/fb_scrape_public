@@ -26,7 +26,7 @@ Sample code
 ```python
 import fb_scrape_public as fsp
 
-#below, client_id and client_secret should be your actual client ID and secret
+#below, "YourClientID," "YourClientSecret," and "YourAccessToken" should be your actual client ID, secret, and access token
 
 #to get page posts, Facebook App mode
 obama_posts = fsp.scrape_fb("YourClientID","YourClientSecret",ids="barackobama") 
