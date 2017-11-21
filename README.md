@@ -33,5 +33,5 @@ obama_posts = fsp.scrape_fb("YourClientID","YourClientSecret",ids="barackobama")
 #to get page posts, access token mode
 obama_posts = fsp.scrape_fb(token="YourAccessToken",ids="barackobama") 
 #to get comments on a single post, Facebook App mode
-comments = fsp.scrape_fb(client_id="YourClientID",client_secret="YourClientSecret",ids="6815841748_10154508876046749",scrape_mode="comments") 
+comments = fsp.scrape_fb("YourClientID","YourClientSecret",ids="6815841748_10154508876046749",scrape_mode="comments") 
 ```
