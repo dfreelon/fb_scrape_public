@@ -13,8 +13,8 @@ Instructions
 1.    This script is written for Python 3 and won't work with previous Python versions.
 2.    The main function in this module is ```scrape_fb``` (see comments on lines 147-148). It is the only function most users will need to run directly.
 3.    To make this script work, you will need to either:
-        a. Create your own Facebook app, which you can do here: https://developers.facebook.com/apps . Doesn't matter what you call your new app, you just need to pull its unique client ID (app ID) and app secret.
-        b. Generate your own FB access token using the Graph API Explorer (https://developers.facebook.com/tools/explorer/) or other means. 
+    a. Create your own Facebook app, which you can do here: https://developers.facebook.com/apps . Doesn't matter what you call your new app, you just need to pull its unique client ID (app ID) and app secret.
+    b. Generate your own FB access token using the Graph API Explorer (https://developers.facebook.com/tools/explorer/) or other means. 
 4.    Next, you can authenticate using one of the following three methods:
         a.Run the ```save_creds()``` function, which will save your credentials to a local file. You will then be able to run ```scrape_fb``` from the directory containing the file without including your ID and secret as arguments. Alternatively you can insert a path to your credentials file into the ```cred_file``` parameter.
         b. Include your client ID and secret AS STRINGS in the appropriate ```scrape_fb``` parameters. 
