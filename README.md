@@ -40,8 +40,8 @@ obama_posts = fsp.scrape_fb(ids="barackobama")
 # if you haven't run save_creds(), use this (id/secret mode)
 obama_posts = fsp.scrape_fb("YourClientID","YourClientSecret",ids="barackobama") 
 
-# or this (access token mode)
-obama_posts = fsp.scrape_fb(token="YourAccessToken",ids="barackobama") 
+# or this (access token mode). the outfile attribute is also set, which means the data will be saved to disk
+obama_posts = fsp.scrape_fb(token="YourAccessToken",ids="barackobama",outfile='obama_posts.csv') 
 
 # to get comments on a single post (id/secret mode)
 comments = fsp.scrape_fb("YourClientID","YourClientSecret",ids="6815841748_10154508876046749",scrape_mode="comments") 
