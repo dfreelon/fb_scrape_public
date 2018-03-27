@@ -29,13 +29,13 @@ socket.setdefaulttimeout(30)
 
 def load_data(data,enc='utf-8'):
     if type(data) is str:
-        csv_data = []
+        csv_chunk = []
         with open(data,'r',encoding = enc,errors = 'replace') as f:
             reader = csv.reader((line.replace('\0','') for line in f)) #remove NULL bytes
             for row in reader:
                 if row != []:
-                    csv_data.append(row)
-        return csv_data
+                    csv_chunk.append(row)
+        return csv_chunk
     else:
         return copy.deepcopy(data)
 
@@ -180,10 +180,11 @@ def scrape_fb(client_id="",client_secret="",cred_file=".fbcreds",token="",ids=""
     else:
         header = ['post_user','post_msg','post_id','post_created_time','comment_id','comment_created_time','comment_message','comment_comment_count','likes','loves','wows','hahas','sads','angrys','comment_permalink_url','app_category','app_link','app_name','app_namespace','app_id']
 
-    csv_data = []
-    csv_data.insert(0,header)
+    csv_chunk = []
+    csv_chunk.insert(0,header)
+    mem_data = csv_chunk
     if outfile != '':
-        save_csv(outfile,csv_data,file_mode="a")
+        save_csv(outfile,csv_chunk,file_mode="a")
 
     for x,fid in enumerate(fb_ids):
         if scrape_mode == 'comments':
@@ -221,9 +222,10 @@ def scrape_fb(client_id="",client_secret="",cred_file=".fbcreds",token="",ids=""
                     except (KeyError,IndexError):
                         j[new_rxns[n]] = 0
                 
-            csv_data = make_csv_chunk(next_item,scrape_mode,msg_user,msg_content,msg_id,msg_ctime)
+            csv_chunk = make_csv_chunk(next_item,scrape_mode,msg_user,msg_content,msg_id,msg_ctime)
+            mem_data.extend(csv_chunk)
             if outfile != '':
-                save_csv(outfile,csv_data,file_mode="a")
+                save_csv(outfile,csv_chunk,file_mode="a")
         else:
             print("Skipping ID " + fid + " ...")
             continue
@@ -245,9 +247,10 @@ def scrape_fb(client_id="",client_secret="",cred_file=".fbcreds",token="",ids=""
             except KeyError:
                 continue
             
-            csv_data = make_csv_chunk(next_item,scrape_mode,msg_user,msg_content,msg_id,msg_ctime)
+            csv_chunk = make_csv_chunk(next_item,scrape_mode,msg_user,msg_content,msg_id,msg_ctime)
+            mem_data.extend(csv_chunk)
             if outfile != '':
-                save_csv(outfile,csv_data,file_mode="a")
+                save_csv(outfile,csv_chunk,file_mode="a")
             try:
                 print(n+1,"page(s) of data archived for ID",fid,"at",next_item['data'][-1]['created_time'],".",round(time.time()-time1,2),'seconds elapsed.')
             except IndexError:
@@ -259,5 +262,5 @@ def scrape_fb(client_id="",client_secret="",cred_file=".fbcreds",token="",ids=""
         print(x+1,'Facebook ID(s) archived.',round(time.time()-time1,2),'seconds elapsed.')
 
     print('Script completed in',time.time()-time1,'seconds.')
-    return csv_data
+    return mem_data
     
