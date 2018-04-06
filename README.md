@@ -1,3 +1,5 @@
+### Update 4/6/18: Facebook has closed access to its Pages API and is not currently reviewing apps to approve access, which means that FSP can only be used to collect data from pages the user owns. I'll update this notice when FB starts reviewing apps again (whenever that is). See https://newsroom.fb.com/news/2018/04/restricting-data-access/ for more details.
+
 # fb_scrape_public
 
 This script can download posts and comments from public Facebook pages and groups (__but not users__). It requires Python 3.
