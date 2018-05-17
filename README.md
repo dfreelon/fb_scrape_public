@@ -1,4 +1,4 @@
-### Update 4/6/18: Facebook has closed access to its Pages API and is not currently reviewing apps to approve access, which means that FSP can only be used to collect data from pages the user owns. I'll update this notice when FB starts reviewing apps again (whenever that is). See https://newsroom.fb.com/news/2018/04/restricting-data-access/ for more details.
+### Update 5/15/18: Facebook has opened an app review process to grant access to the Pages API. Applicants will "require App Review, Business Verification, and Supplemental Terms." Theoretically any app that successfully navigates this process should be able to use FSP, although I have not tested this myself. See https://developers.facebook.com/docs/apps/review for more details.
 
 # fb_scrape_public
 
